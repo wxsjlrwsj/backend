@@ -6,6 +6,7 @@ public class User {
   private Long id;
   private String username;
   private String email;
+  private String phone;
   private String passwordHash;
   private String userType;
   private String realName;
@@ -34,6 +35,14 @@ public class User {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
   }
 
   public String getPasswordHash() {

@@ -12,5 +12,6 @@ public interface UserMapper {
   Long countByEmail(@Param("email") String email);
   int insert(User user);
   int updatePasswordById(@Param("id") Long id, @Param("passwordHash") String passwordHash);
+  int updateProfileById(@Param("id") Long id, @Param("email") String email, @Param("phone") String phone);
   List<User> selectAll();
 }

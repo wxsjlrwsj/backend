@@ -1,9 +1,12 @@
+server:
+  port: 8082
+
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/chaoxing?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/chaoxing?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8}
     driverClassName: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD:}
+    password: ${DB_PASSWORD:root123}
   sql:
     init:
       mode: always
@@ -14,9 +17,6 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
-server:
-  port: 0
-
 security:
   token:
-    secret: test-secret
+    secret: change-me-dev

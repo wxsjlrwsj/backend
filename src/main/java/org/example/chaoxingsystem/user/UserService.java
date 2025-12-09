@@ -78,10 +78,37 @@ public class UserService {
     return new UserInfo(u.getId(), u.getUsername(), u.getRealName(), u.getUserType(), u.getAvatar());
   }
 
+  public User getByUsername(String username) {
+    return userMapper.selectByUsername(username);
+  }
+
   public List<UserResponse> listAllUsers() {
     return userMapper.selectAll().stream()
       .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getEmail(),
         u.getCreatedAt() != null ? u.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant() : null))
       .collect(Collectors.toList());
+  }
+
+  @Transactional
+  public boolean updateProfile(String username, String email, String phone) {
+    User u = userMapper.selectByUsername(username);
+    if (u == null) { return false; }
+    if (!u.getEmail().equalsIgnoreCase(email) && userMapper.countByEmail(email) > 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "邮箱已存在");
+    }
+    int updated = userMapper.updateProfileById(u.getId(), email.trim().toLowerCase(), phone != null ? phone.trim() : null);
+    return updated > 0;
+  }
+
+  @Transactional
+  public boolean changePassword(String username, String oldPassword, String newPassword) {
+    User u = userMapper.selectByUsername(username);
+    if (u == null) { return false; }
+    if (!passwordEncoder.matches(oldPassword, u.getPasswordHash())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "原密码不正确");
+    }
+    String hash = passwordEncoder.encode(newPassword);
+    int updated = userMapper.updatePasswordById(u.getId(), hash);
+    return updated > 0;
   }
 }

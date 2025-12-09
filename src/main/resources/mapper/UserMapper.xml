@@ -3,13 +3,13 @@
 <mapper namespace="org.example.chaoxingsystem.user.UserMapper">
 
   <select id="selectByUsername" parameterType="string" resultType="org.example.chaoxingsystem.user.User">
-    SELECT id, username, email, password_hash, user_type, real_name, avatar, created_at
+    SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
     FROM users
     WHERE username = #{username}
   </select>
 
   <select id="selectByEmail" parameterType="string" resultType="org.example.chaoxingsystem.user.User">
-    SELECT id, username, email, password_hash, user_type, real_name, avatar, created_at
+    SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
     FROM users
     WHERE email = #{email}
   </select>
@@ -23,8 +23,8 @@
   </select>
 
   <insert id="insert" parameterType="org.example.chaoxingsystem.user.User" useGeneratedKeys="true" keyProperty="id">
-    INSERT INTO users (username, email, password_hash, user_type, real_name, avatar)
-    VALUES (#{username}, #{email}, #{passwordHash}, #{userType}, #{realName}, #{avatar})
+    INSERT INTO users (username, email, phone, password_hash, user_type, real_name, avatar)
+    VALUES (#{username}, #{email}, #{phone}, #{passwordHash}, #{userType}, #{realName}, #{avatar})
   </insert>
 
   <update id="updatePasswordById" parameterType="map">
@@ -32,8 +32,15 @@
     WHERE id = #{id}
   </update>
 
+  <update id="updateProfileById" parameterType="map">
+    UPDATE users SET
+      email = #{email},
+      phone = #{phone}
+    WHERE id = #{id}
+  </update>
+
   <select id="selectAll" resultType="org.example.chaoxingsystem.user.User">
-    SELECT id, username, email, password_hash, user_type, real_name, avatar, created_at
+    SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
     FROM users
     ORDER BY id
   </select>
