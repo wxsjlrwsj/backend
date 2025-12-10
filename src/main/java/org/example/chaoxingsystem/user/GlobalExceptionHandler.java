@@ -9,6 +9,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.validation.BindException;
 import org.springframework.dao.DataIntegrityViolationException;
 
+/**
+ * 全局异常处理：统一返回 ApiResponse 格式
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
   @ExceptionHandler(ResponseStatusException.class)

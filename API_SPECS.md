@@ -591,7 +591,7 @@
 | `id` | BIGINT | 主键 |
 | `submitter_id` | BIGINT | 提交人ID (关联 `sys_user.id`) |
 | `submit_time` | DATETIME | 提交时间 |
-| `type` | VARCHAR(20) | 题目类型 (single, multiple, judge, short_answer) |
+| `type_id` | TINYINT | 【调整】题型ID，参考 `biz_question_type.type_id` |
 | `content` | TEXT | 题目内容 (JSON格式, 包含题干、选项) |
 | `answer` | TEXT | 参考答案 |
 | `difficulty` | TINYINT | 难度 (1-5) |
@@ -639,22 +639,25 @@
 | 字段名 | 类型 | 必填 | 描述 |
 | :--- | :--- | :--- | :--- |
 | `id` | BIGINT | YES | 主键 |
-| `type` | VARCHAR(20) | YES | 题目类型: `single_choice`, `multiple_choice`, `true_false`, `fill_blank`, `short_answer`, `programming` |
+| `type_id` | TINYINT | YES | 【调整】题型ID，参考字典 `biz_question_type.type_id` |
 | `content` | TEXT | YES | 题目内容 (JSON/HTML) |
-| `options` | TEXT | NO | 选项内容 (JSON数组: `[{"key":"A","value":"..."}]`) |
-| `answer` | TEXT | YES | 参考答案 |
+| `options` | JSON | NO | 选项内容 (JSON数组: `[{"key":"A","value":"..."}]`) |
+| `answer` | JSON | YES | 【调整】标准化答案结构（随题型定义）；详见“3.2.0.2 答案结构规范” |
 | `analysis` | TEXT | NO | 解析 |
 | `difficulty` | TINYINT | YES | 难度: 1-5 |
 | `subject` | VARCHAR(50) | YES | 所属科目 |
 | `knowledge_points`| VARCHAR(255)| NO | 知识点 (逗号分隔) |
+| `file_id` | VARCHAR(64) | NO | 【新增】复杂题型文件ID；仅编程等复杂题型填充，其他题型为NULL |
 | `creator_id` | BIGINT | YES | 创建人ID |
 | `create_time` | DATETIME | YES | 创建时间 |
 | `status` | TINYINT | YES | 状态: 1-正常, 0-禁用 |
 
+> 注：本表关联题型字典仅存储 `type_id`；接口层可传 `typeCode`，服务端映射为 `type_id` 后入库。
+
 ### 3.2.1 获取题目列表
 - **URL**: `/api/questions`
 - **Method**: `GET`
-- **Params**: `page`, `size`, `type`, `keyword`, `difficulty`, `subject`
+- **Params**: `page`, `size`, `typeCode`, `keyword`, `difficulty`, `subject`【调整：`typeCode` 对应字典的 `type_code`】
 
 ### 3.2.2 创建题目
 - **URL**: `/api/questions`
@@ -662,18 +665,30 @@
 - **Body**:
   ```json
   {
-    "type": "single_choice",
+    "typeCode": "single_choice",
     "content": "Java中int占用几个字节？",
     "options": [{"key":"A","value":"2"},{"key":"B","value":"4"}],
-    "answer": "B",
+    "answer": ["B"],
     "difficulty": 1,
-    "subject": "Java"
+    "subject": "Java",
+    "useFile": true,
+    "fileId": "f-12345"
   }
   ```
+
+- 说明：`useFile` 为可选布尔值，表示是否使用文件；当为 `false` 或未提供时，后端不使用 `fileId`（即使编程题也不是必须）。
 
 ### 3.2.3 更新题目
 - **URL**: `/api/questions/{id}`
 - **Method**: `PUT`
+
+- **Body 示例**（移除文件）：
+  ```json
+  {
+    "useFile": false
+  }
+  ```
+- 说明：当 `useFile=false` 时，服务端会将该题目的 `file_id` 清空；否则仅在提供了 `fileId` 时更新文件ID。
 
 ### 3.2.4 删除题目
 - **URL**: `/api/questions/{id}`
@@ -806,7 +821,8 @@
 | `id` | BIGINT | 主键 |
 | `record_id` | BIGINT | 考试记录ID |
 | `question_id` | BIGINT | 题目ID |
-| `student_answer`| TEXT | 学生答案 |
+| `student_answer`| JSON | 【调整】学生答案（JSON），结构遵循“3.2.0.2 答案结构规范” |
+| `file_id` | VARCHAR(64) | 复杂题型文件ID；【新增】仅编程等复杂题型填充，其他题型为NULL |
 | `score` | INT | 得分 |
 | `is_correct` | BOOLEAN | 是否正确 (客观题自动判断) |
 | `comment` | VARCHAR(500)| 评语 |
@@ -862,7 +878,7 @@
 - **Body**:
   ```json
   {
-    "answers": { "101": "A", "102": "B" },
+    "answers": { "101": ["A"], "102": ["B"] },
     "durationUsed": 3600
   }
   ```
@@ -875,3 +891,32 @@
 
 ## 4.4 个人空间 (Student Profile)
 *(To be detailed)*
+### 3.2.0.1 题型字典表 (`biz_question_type`) 【调整】
+
+用于维护题型元数据；`biz_question.type_id` 参考此字典。服务端依据本字典的 `answer_json` 与 `config_json` 执行答案结构校验与归一化。
+
+| 字段名 | 字段类型 | 非空 | 核心说明 |
+| :--- | :--- | :--- | :--- |
+| `type_id` | TINYINT | 是 | 题型唯一主键（枚举式 ID：1=单选，2=多选，3=判断，4=填空，5=简答，6=编程...） |
+| `type_name` | VARCHAR(32) | 是 | 题型中文名称（如“单选题”），用于前端展示/教师后台 |
+| `type_code` | VARCHAR(16) | 是 | 题型英文简写（如“SINGLE”“MULTI”），系统内部逻辑调用（避免硬编码） |
+| `answer_json` | JSON | 是 | 【新增】答案结构定义（标准形态与示例），服务端据此进行结构校验与归一化 |
+| `config_json` | JSON | 是 | 题型配套规则（结构化存储，如 `{"leak_score":0.5,"max_option":5,"is_objective":true,"requires_file_id":false}`） |
+| `is_active` | TINYINT | 是 | 是否启用（1=启用，0=禁用），软删除，避免删除导致历史数据关联失效 |
+| `create_time` | DATETIME | 是 | 题型创建时间 |
+| `update_time` | DATETIME | 是 | 题型规则更新时间 |
+> 注：本表关联题型字典仅存储 `type_id`（外键语义）；接口/展示可使用字典的 `type_code` 进行映射。
+### 3.2.0.2 答案结构规范 【新增】
+
+为统一判题与数据结构，`biz_question.answer` 与 `biz_exam_answer.student_answer` 均采用 **JSON** 存储，按题型约定如下：
+
+- `single_choice`：`["B"]`（数组，元素为选项 `key`）
+- `multiple_choice`：`["A","C"]`
+- `true_false`：`true` 或 `false`
+- `fill_blank`：`["空1","空2"]`（按题干空位顺序对齐）
+- `short_answer`：`"文本字符串"`（可为富文本序列化）
+- `programming`：`文本字符串`；答案文件使用题目或答题的 `file_id`，判题依赖测试用例与评测配置
+  （`file_id` 为可选，前端通过 `useFile` 控制是否上传与使用文件）
+
+说明：结构由字典 `biz_question_type.answer_json` 统一定义（包含形态与示例）；客观题与是否使用 `file_id` 等行为由 `config_json` 与前端 `useFile` 控制，服务端不强制要求文件必填。
+为 biz_question 与 biz_exam_answer 的 JSON 字段做入参出参校验（服务层），避免不合规结构入库。

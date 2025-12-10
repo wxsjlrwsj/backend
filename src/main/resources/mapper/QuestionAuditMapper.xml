@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.chaoxingsystem.teacher.audit.QuestionAuditMapper">
+
+  <resultMap id="ListRowMap" type="org.example.chaoxingsystem.teacher.audit.QuestionAuditListRow">
+    <id property="id" column="id"/>
+    <result property="submitterId" column="submitter_id"/>
+    <result property="submitterName" column="submitter_name"/>
+    <result property="submitTime" column="submit_time"/>
+    <result property="typeId" column="type_id"/>
+    <result property="typeCode" column="type_code"/>
+    <result property="difficulty" column="difficulty"/>
+    <result property="subjectId" column="subject_id"/>
+    <result property="status" column="status"/>
+  </resultMap>
+
+  <resultMap id="DetailMap" type="org.example.chaoxingsystem.teacher.audit.QuestionAuditDetail">
+    <id property="id" column="id"/>
+    <result property="submitterId" column="submitter_id"/>
+    <result property="submitterName" column="submitter_name"/>
+    <result property="submitTime" column="submit_time"/>
+    <result property="typeId" column="type_id"/>
+    <result property="typeCode" column="type_code"/>
+    <result property="content" column="content"/>
+    <result property="answer" column="answer"/>
+    <result property="difficulty" column="difficulty"/>
+    <result property="subjectId" column="subject_id"/>
+    <result property="status" column="status"/>
+    <result property="auditComment" column="audit_comment"/>
+    <result property="auditorId" column="auditor_id"/>
+    <result property="auditorName" column="auditor_name"/>
+    <result property="auditTime" column="audit_time"/>
+  </resultMap>
+
+  <select id="count" resultType="long">
+    SELECT COUNT(1)
+    FROM biz_question_audit a
+    LEFT JOIN users su ON su.id = a.submitter_id
+    <where>
+      <if test="status != null">AND a.status = #{status}</if>
+      <if test="submitterName != null and submitterName != ''">AND su.real_name LIKE CONCAT('%', #{submitterName}, '%')</if>
+      <if test="beginTime != null and beginTime != ''">AND a.submit_time &gt;= #{beginTime}</if>
+      <if test="endTime != null and endTime != ''">AND a.submit_time &lt;= #{endTime}</if>
+    </where>
+  </select>
+
+  <select id="selectPage" resultMap="ListRowMap">
+    SELECT a.id, a.submitter_id, su.real_name AS submitter_name, a.submit_time, a.type_id, qt.type_code, a.difficulty, a.subject_id, a.status
+    FROM biz_question_audit a
+    LEFT JOIN users su ON su.id = a.submitter_id
+    LEFT JOIN biz_question_type qt ON qt.type_id = a.type_id
+    <where>
+      <if test="status != null">AND a.status = #{status}</if>
+      <if test="submitterName != null and submitterName != ''">AND su.real_name LIKE CONCAT('%', #{submitterName}, '%')</if>
+      <if test="beginTime != null and beginTime != ''">AND a.submit_time &gt;= #{beginTime}</if>
+      <if test="endTime != null and endTime != ''">AND a.submit_time &lt;= #{endTime}</if>
+    </where>
+    ORDER BY a.submit_time DESC, a.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="selectDetail" resultMap="DetailMap">
+    SELECT a.*, qt.type_code, su.real_name AS submitter_name, au.real_name AS auditor_name
+    FROM biz_question_audit a
+    LEFT JOIN biz_question_type qt ON qt.type_id = a.type_id
+    LEFT JOIN users su ON su.id = a.submitter_id
+    LEFT JOIN users au ON au.id = a.auditor_id
+    WHERE a.id = #{id}
+  </select>
+
+  <update id="processBatch">
+    UPDATE biz_question_audit
+    SET status = #{status}, audit_comment = #{comment}, auditor_id = #{auditorId}, audit_time = CURRENT_TIMESTAMP
+    WHERE status = 0 AND id IN
+    <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+  </update>
+
+</mapper>

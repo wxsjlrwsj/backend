@@ -14,6 +14,9 @@ import org.example.chaoxingsystem.user.dto.UserInfo;
 import org.example.chaoxingsystem.user.dto.UserResponse;
 import java.time.ZoneId;
 
+/**
+ * 用户领域服务：注册、认证、资料维护、密码修改、用户列表等
+ */
 @Service
 public class UserService {
   private final UserMapper userMapper;
@@ -25,6 +28,7 @@ public class UserService {
 
   @Transactional
   public User register(RegisterRequest request) {
+    // 唯一性校验：用户名/邮箱不可重复
     if (userMapper.countByUsername(request.getUsername()) > 0) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "用户名已存在");
     }
@@ -57,6 +61,7 @@ public class UserService {
 
   @Transactional
   public boolean resetPassword(ResetPasswordRequest request) {
+    // 基于用户名+邮箱双重匹配后重置密码
     if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getEmail())) {
       return false;
     }

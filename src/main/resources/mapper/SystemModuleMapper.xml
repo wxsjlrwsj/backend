@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.chaoxingsystem.admin.module.SystemModuleMapper">
+
+  <resultMap id="SystemModuleMap" type="org.example.chaoxingsystem.admin.module.SystemModule">
+    <id property="id" column="id"/>
+    <result property="name" column="name"/>
+    <result property="code" column="code"/>
+    <result property="category" column="category"/>
+    <result property="version" column="version"/>
+    <result property="enabled" column="enabled"/>
+    <result property="showInMenu" column="show_in_menu"/>
+    <result property="routePath" column="route_path"/>
+    <result property="allowedRoles" column="allowed_roles"/>
+    <result property="dependencies" column="dependencies"/>
+    <result property="description" column="description"/>
+    <result property="updatedAt" column="updated_at"/>
+  </resultMap>
+
+  <insert id="insert" parameterType="org.example.chaoxingsystem.admin.module.SystemModule" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO system_modules (name, code, category, version, enabled, show_in_menu, route_path, allowed_roles, dependencies, description)
+    VALUES (#{name}, #{code}, #{category}, #{version}, #{enabled}, #{showInMenu}, #{routePath}, #{allowedRoles}, #{dependencies}, #{description})
+  </insert>
+
+  <update id="updateById" parameterType="org.example.chaoxingsystem.admin.module.SystemModule">
+    UPDATE system_modules SET
+      name = #{name},
+      category = #{category},
+      version = #{version},
+      enabled = #{enabled},
+      show_in_menu = #{showInMenu},
+      route_path = #{routePath},
+      allowed_roles = #{allowedRoles},
+      dependencies = #{dependencies},
+      description = #{description}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="deleteById">
+    DELETE FROM system_modules WHERE id = #{id}
+  </delete>
+
+  <select id="selectById" resultMap="SystemModuleMap">
+    SELECT * FROM system_modules WHERE id = #{id}
+  </select>
+
+  <select id="countByCode" resultType="long">
+    SELECT COUNT(1) FROM system_modules WHERE code = #{code}
+  </select>
+
+  <select id="selectByCode" resultMap="SystemModuleMap">
+    SELECT * FROM system_modules WHERE code = #{code}
+  </select>
+
+  <select id="count" resultType="long">
+    SELECT COUNT(1) FROM system_modules
+    <where>
+      <if test="keyword != null and keyword != ''">
+        AND (name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%'))
+      </if>
+      <if test="category != null and category != ''">
+        AND category = #{category}
+      </if>
+      <if test="enabled != null">
+        AND enabled = #{enabled}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectPage" resultMap="SystemModuleMap">
+    SELECT * FROM system_modules
+    <where>
+      <if test="keyword != null and keyword != ''">
+        AND (name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%'))
+      </if>
+      <if test="category != null and category != ''">
+        AND category = #{category}
+      </if>
+      <if test="enabled != null">
+        AND enabled = #{enabled}
+      </if>
+    </where>
+    ORDER BY updated_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+</mapper>

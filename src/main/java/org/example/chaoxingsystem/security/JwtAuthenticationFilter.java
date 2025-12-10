@@ -15,6 +15,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * JWT 认证过滤器：
+ * - 从请求头读取 Authorization: Bearer <token>
+ * - 解析并校验自定义 JWT，提取用户名与用户类型
+ * - 基于用户类型映射 Spring Security 角色（ROLE_STUDENT/ROLE_TEACHER/ROLE_ADMIN）
+ * - 设置认证上下文后放行
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final TokenService tokenService;
@@ -40,4 +47,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 }
-

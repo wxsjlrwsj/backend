@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.chaoxingsystem.admin.perm.RoleMapper">
+
+  <insert id="insert" parameterType="org.example.chaoxingsystem.admin.perm.Role" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO sys_role (role_name, role_key, data_scope, status, remark)
+    VALUES (#{roleName}, #{roleKey}, #{dataScope}, #{status}, #{remark})
+  </insert>
+
+  <update id="updateById" parameterType="org.example.chaoxingsystem.admin.perm.Role">
+    UPDATE sys_role SET role_name=#{roleName}, role_key=#{roleKey}, data_scope=#{dataScope}, status=#{status}, remark=#{remark}
+    WHERE id=#{id}
+  </update>
+
+  <delete id="deleteById">DELETE FROM sys_role WHERE id=#{id}</delete>
+
+  <select id="selectById" resultType="org.example.chaoxingsystem.admin.perm.Role">SELECT * FROM sys_role WHERE id=#{id}</select>
+
+  <select id="selectAll" resultType="org.example.chaoxingsystem.admin.perm.Role">SELECT * FROM sys_role ORDER BY id ASC</select>
+
+  <select id="count" resultType="long">
+    SELECT COUNT(1) FROM sys_role
+    <where>
+      <if test="keyword != null and keyword != ''">AND (role_name LIKE CONCAT('%', #{keyword}, '%') OR role_key LIKE CONCAT('%', #{keyword}, '%'))</if>
+    </where>
+  </select>
+
+  <select id="selectPage" resultType="org.example.chaoxingsystem.admin.perm.Role">
+    SELECT * FROM sys_role
+    <where>
+      <if test="keyword != null and keyword != ''">AND (role_name LIKE CONCAT('%', #{keyword}, '%') OR role_key LIKE CONCAT('%', #{keyword}, '%'))</if>
+    </where>
+    ORDER BY id ASC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+</mapper>

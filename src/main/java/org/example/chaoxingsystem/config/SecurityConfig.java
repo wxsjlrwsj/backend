@@ -16,6 +16,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
 
+/**
+ * 安全配置：
+ * - 关闭 CSRF，启用无状态会话
+ * - 配置 CORS 允许来源
+ * - 放行登录/注册/重置密码，其余接口按角色鉴权
+ * - 在用户名密码过滤器之前加入 JWT 认证过滤器
+ */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -43,6 +50,7 @@ public class SecurityConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
+    // 允许来自配置的来源进行跨域访问，支持通配符
     CorsConfiguration config = new CorsConfiguration();
     for (String origin : allowedOrigins.split(",")) {
       String o = origin.trim();

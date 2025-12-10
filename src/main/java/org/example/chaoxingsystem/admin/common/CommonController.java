@@ -11,6 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 管理端公共接口：个人资料查询/更新、密码修改
+ */
 @RestController("adminCommonController")
 @RequestMapping("/api/common")
 public class CommonController {

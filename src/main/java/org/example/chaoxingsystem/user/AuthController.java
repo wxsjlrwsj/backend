@@ -14,6 +14,9 @@ import org.springframework.security.core.Authentication;
 import java.util.List;
 import org.example.chaoxingsystem.user.dto.UserResponse;
 
+/**
+ * 鉴权接口：注册、登录、重置密码、获取当前用户信息、管理员用户列表
+ */
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")

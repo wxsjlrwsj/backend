@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.chaoxingsystem.admin.org.OrganizationMapper">
+
+  <resultMap id="OrgMap" type="org.example.chaoxingsystem.admin.org.Organization">
+    <id property="id" column="id"/>
+    <result property="parentId" column="parent_id"/>
+    <result property="name" column="name"/>
+    <result property="code" column="code"/>
+    <result property="type" column="type"/>
+    <result property="sortOrder" column="sort_order"/>
+    <result property="path" column="path"/>
+    <result property="status" column="status"/>
+    <result property="leader" column="leader"/>
+    <result property="phone" column="phone"/>
+    <result property="description" column="description"/>
+  </resultMap>
+
+  <insert id="insert" parameterType="org.example.chaoxingsystem.admin.org.Organization" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO sys_organization (parent_id, name, code, type, sort_order, path, status, leader, phone, description)
+    VALUES (#{parentId}, #{name}, #{code}, #{type}, #{sortOrder}, #{path}, #{status}, #{leader}, #{phone}, #{description})
+  </insert>
+
+  <update id="updateById" parameterType="org.example.chaoxingsystem.admin.org.Organization">
+    UPDATE sys_organization SET
+      parent_id = #{parentId},
+      name = #{name},
+      code = #{code},
+      type = #{type},
+      sort_order = #{sortOrder},
+      path = #{path},
+      status = #{status},
+      leader = #{leader},
+      phone = #{phone},
+      description = #{description}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="deleteById">
+    DELETE FROM sys_organization WHERE id = #{id}
+  </delete>
+
+  <select id="selectById" resultMap="OrgMap">
+    SELECT * FROM sys_organization WHERE id = #{id}
+  </select>
+
+  <select id="countChildren" resultType="long">
+    SELECT COUNT(1) FROM sys_organization WHERE parent_id = #{id}
+  </select>
+
+  <select id="selectChildren" resultMap="OrgMap">
+    SELECT * FROM sys_organization WHERE parent_id = #{parentId} ORDER BY sort_order ASC, id ASC
+  </select>
+
+  <select id="countByCode" resultType="long">
+    SELECT COUNT(1) FROM sys_organization WHERE code = #{code}
+  </select>
+
+  <select id="selectAll" resultMap="OrgMap">
+    SELECT * FROM sys_organization ORDER BY path ASC, sort_order ASC
+  </select>
+
+  <select id="selectSubtree" resultMap="OrgMap">
+    SELECT * FROM sys_organization WHERE path LIKE CONCAT(#{pathPrefix}, '%') ORDER BY path ASC
+  </select>
+
+</mapper>

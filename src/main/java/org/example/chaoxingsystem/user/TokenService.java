@@ -11,6 +11,10 @@ import java.util.Base64;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * 令牌服务：提供简化版 JWT 的生成与校验
+ * 注意：当前实现未加入过期时间与刷新机制，生产环境需扩展 exp/refresh 等逻辑
+ */
 @Service
 public class TokenService {
   private final String secret;
@@ -21,8 +25,10 @@ public class TokenService {
   }
 
   public String generateToken(User user) {
+    // 头部固定为 HS256 算法
     String headerJson = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
     long iat = Instant.now().getEpochSecond();
+    // 负载包含用户标识、用户名、用户类型与签发时间
     String payloadJson = "{\"sub\":" + quote(user.getId()) + 
       ",\"username\":" + quote(user.getUsername()) +
       ",\"userType\":" + quote(user.getUserType()) +
@@ -44,6 +50,7 @@ public class TokenService {
       String header = parts[0];
       String payload = parts[1];
       String signature = parts[2];
+      // 校验签名是否匹配
       String expected = hmacSha256(header + "." + payload, secret);
       if (!expected.equals(signature)) {
         return null;

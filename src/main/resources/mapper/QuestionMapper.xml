@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.chaoxingsystem.teacher.bank.QuestionMapper">
+
+  <resultMap id="QuestionMap" type="org.example.chaoxingsystem.teacher.bank.Question">
+    <id property="id" column="id"/>
+    <result property="typeId" column="type_id"/>
+    <result property="content" column="content"/>
+    <result property="options" column="options"/>
+    <result property="answer" column="answer"/>
+    <result property="analysis" column="analysis"/>
+    <result property="difficulty" column="difficulty"/>
+    <result property="subject" column="subject"/>
+    <result property="knowledgePoints" column="knowledge_points"/>
+    <result property="fileId" column="file_id"/>
+    <result property="creatorId" column="creator_id"/>
+    <result property="createTime" column="create_time"/>
+    <result property="status" column="status"/>
+  </resultMap>
+
+  <sql id="BaseSelect">
+    SELECT q.* FROM biz_question q
+    <if test="typeCode != null and typeCode != ''">
+      LEFT JOIN biz_question_type t ON t.type_id = q.type_id
+    </if>
+  </sql>
+
+  <select id="count" resultType="long">
+    SELECT COUNT(1) FROM biz_question q
+    <if test="typeCode != null and typeCode != ''">
+      LEFT JOIN biz_question_type t ON t.type_id = q.type_id
+    </if>
+    <where>
+      <if test="typeCode != null and typeCode != ''">AND t.type_code = #{typeCode}</if>
+      <if test="keyword != null and keyword != ''">AND (q.content LIKE CONCAT('%', #{keyword}, '%'))</if>
+      <if test="difficulty != null">AND q.difficulty = #{difficulty}</if>
+      <if test="subject != null and subject != ''">AND q.subject = #{subject}</if>
+    </where>
+  </select>
+
+  <select id="selectPage" resultMap="QuestionMap">
+    <include refid="BaseSelect" />
+    <where>
+      <if test="typeCode != null and typeCode != ''">AND t.type_code = #{typeCode}</if>
+      <if test="keyword != null and keyword != ''">AND (q.content LIKE CONCAT('%', #{keyword}, '%'))</if>
+      <if test="difficulty != null">AND q.difficulty = #{difficulty}</if>
+      <if test="subject != null and subject != ''">AND q.subject = #{subject}</if>
+    </where>
+    ORDER BY q.create_time DESC, q.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <insert id="insert" parameterType="org.example.chaoxingsystem.teacher.bank.Question" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO biz_question (type_id, content, options, answer, analysis, difficulty, subject, knowledge_points, file_id, creator_id)
+    VALUES (#{typeId}, #{content}, #{options}, #{answer}, #{analysis}, #{difficulty}, #{subject}, #{knowledgePoints}, #{fileId}, #{creatorId})
+  </insert>
+
+  <update id="updateById" parameterType="org.example.chaoxingsystem.teacher.bank.Question">
+    UPDATE biz_question SET
+      type_id = #{typeId},
+      content = #{content},
+      options = #{options},
+      answer = #{answer},
+      analysis = #{analysis},
+      difficulty = #{difficulty},
+      subject = #{subject},
+      knowledge_points = #{knowledgePoints},
+      file_id = #{fileId},
+      status = #{status}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="deleteById">
+    DELETE FROM biz_question WHERE id = #{id}
+  </delete>
+
+  <select id="selectById" resultMap="QuestionMap">
+    SELECT * FROM biz_question WHERE id = #{id}
+  </select>
+
+  <select id="selectByTypeSubjectDifficultyLimit" resultMap="QuestionMap">
+    SELECT q.* FROM biz_question q
+    LEFT JOIN biz_question_type t ON t.type_id = q.type_id
+    <where>
+      <if test="typeCode != null and typeCode != ''">AND t.type_code = #{typeCode}</if>
+      <if test="subject != null and subject != ''">AND q.subject = #{subject}</if>
+      <if test="difficulty != null">AND q.difficulty = #{difficulty}</if>
+      AND q.status = 1
+    </where>
+    ORDER BY q.create_time DESC
+    LIMIT #{limit}
+  </select>
+
+</mapper>
