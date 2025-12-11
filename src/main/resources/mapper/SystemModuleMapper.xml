@@ -84,4 +84,11 @@
     LIMIT #{limit} OFFSET #{offset}
   </select>
 
+  <select id="selectVisibleByRole" resultMap="SystemModuleMap">
+    SELECT * FROM system_modules
+    WHERE enabled = 1 AND show_in_menu = 1
+      AND FIND_IN_SET(#{role}, allowed_roles) > 0
+    ORDER BY updated_at DESC
+  </select>
+
 </mapper>

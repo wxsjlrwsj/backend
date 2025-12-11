@@ -8,6 +8,12 @@
     WHERE username = #{username}
   </select>
 
+  <select id="selectById" parameterType="long" resultType="org.example.chaoxingsystem.user.User">
+    SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
+    FROM users
+    WHERE id = #{id}
+  </select>
+
   <select id="selectByEmail" parameterType="string" resultType="org.example.chaoxingsystem.user.User">
     SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
     FROM users
@@ -43,6 +49,25 @@
     SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
     FROM users
     ORDER BY id
+  </select>
+
+  <select id="searchByUserType" resultType="org.example.chaoxingsystem.user.User">
+    SELECT id, username, email, phone, password_hash, user_type, real_name, avatar, created_at
+    FROM users
+    WHERE user_type = #{userType}
+      <if test="keyword != null and keyword != ''">
+        AND (username LIKE CONCAT('%', #{keyword}, '%') OR real_name LIKE CONCAT('%', #{keyword}, '%'))
+      </if>
+    ORDER BY id
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="countByUserTypeAndKeyword" resultType="long">
+    SELECT COUNT(*) FROM users
+    WHERE user_type = #{userType}
+      <if test="keyword != null and keyword != ''">
+        AND (username LIKE CONCAT('%', #{keyword}, '%') OR real_name LIKE CONCAT('%', #{keyword}, '%'))
+      </if>
   </select>
 
 </mapper>

@@ -118,16 +118,44 @@ public class PermissionController {
   /** 获取某角色下已分配的用户列表（仅返回 userId 列表，可扩展为详细信息） */
   @GetMapping("/role/{roleId}/allocated-users")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<List<Long>>> allocatedUsers(@PathVariable("roleId") Long roleId) {
-    var ids = userRoleMapper.selectUserIdsByRoleId(roleId);
-    return ResponseEntity.ok(ApiResponse.success("获取成功", ids));
+  public ResponseEntity<ApiResponse<Map<String, Object>>> allocatedUsers(@PathVariable("roleId") Long roleId,
+                                                                        @RequestParam(value = "username", required = false) String username,
+                                                                        @RequestParam(value = "realName", required = false) String realName,
+                                                                        @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                                                                        @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+    int offset = (Math.max(pageNum, 1) - 1) * Math.max(pageSize, 1);
+    var list = userRoleMapper.selectAllocatedUsersByRole(roleId, username, realName, offset, pageSize);
+    Long total = userRoleMapper.countAllocatedUsersByRole(roleId, username, realName);
+    if (total == null || total == 0L) {
+      var r = roleMapper.selectById(roleId);
+      if (r != null && r.getRoleKey() != null) {
+        String userType = r.getRoleKey().toLowerCase();
+        list = userRoleMapper.selectUsersByUserType(userType, username, realName, offset, pageSize);
+        total = userRoleMapper.countUsersByUserType(userType, username, realName);
+      }
+    }
+    Map<String, Object> data = new HashMap<>();
+    data.put("list", list);
+    data.put("total", total);
+    return ResponseEntity.ok(ApiResponse.success("获取成功", data));
   }
 
-  /** 获取未分配该角色的用户列表（简化为返回空数组，实际场景需根据用户表筛选） */
+  /** 获取未分配该角色的用户列表（分页筛选） */
   @GetMapping("/role/{roleId}/unallocated-users")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<List<Long>>> unallocatedUsers(@PathVariable("roleId") Long roleId) {
-    return ResponseEntity.ok(ApiResponse.success("获取成功", List.of()));
+  public ResponseEntity<ApiResponse<Map<String, Object>>> unallocatedUsers(@PathVariable("roleId") Long roleId,
+                                                                          @RequestParam(value = "username", required = false) String username,
+                                                                          @RequestParam(value = "realName", required = false) String realName,
+                                                                          @RequestParam(value = "orgId", required = false) Long orgId,
+                                                                          @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                                                                          @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+    int offset = (Math.max(pageNum, 1) - 1) * Math.max(pageSize, 1);
+    var list = userRoleMapper.selectUnallocatedUsersByRole(roleId, username, realName, orgId, offset, pageSize);
+    Long total = userRoleMapper.countUnallocatedUsersByRole(roleId, username, realName, orgId);
+    Map<String, Object> data = new HashMap<>();
+    data.put("list", list);
+    data.put("total", total);
+    return ResponseEntity.ok(ApiResponse.success("获取成功", data));
   }
 
   /** 批量授权用户 */

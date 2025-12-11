@@ -27,18 +27,22 @@
     SELECT COUNT(1)
     FROM biz_exam_record r
     LEFT JOIN users u ON u.id = r.student_id
+    LEFT JOIN biz_student s ON s.user_id = u.id
     <where>
       <if test="examId != null">AND r.exam_id = #{examId}</if>
+      <if test="classId != null">AND s.class_id = #{classId}</if>
       <if test="keyword != null and keyword != ''">AND (u.real_name LIKE CONCAT('%', #{keyword}, '%') OR u.username LIKE CONCAT('%', #{keyword}, '%'))</if>
     </where>
   </select>
 
   <select id="selectPage" resultType="java.util.Map">
-    SELECT r.id, r.exam_id, r.student_id, u.real_name AS student_name, r.score, r.status, r.start_time, r.submit_time
+    SELECT r.id, r.exam_id, r.student_id, u.real_name AS student_name, r.score, r.status, r.start_time, r.submit_time, s.class_id AS class_id
     FROM biz_exam_record r
     LEFT JOIN users u ON u.id = r.student_id
+    LEFT JOIN biz_student s ON s.user_id = u.id
     <where>
       <if test="examId != null">AND r.exam_id = #{examId}</if>
+      <if test="classId != null">AND s.class_id = #{classId}</if>
       <if test="keyword != null and keyword != ''">AND (u.real_name LIKE CONCAT('%', #{keyword}, '%') OR u.username LIKE CONCAT('%', #{keyword}, '%'))</if>
     </where>
     ORDER BY r.submit_time DESC, r.id DESC
@@ -60,5 +64,20 @@
   <update id="updateAnswerScore">
     UPDATE biz_exam_answer SET score = #{score}, comment = #{comment} WHERE record_id = #{recordId} AND question_id = #{questionId}
   </update>
+
+  <select id="selectStats" resultType="java.util.Map">
+    SELECT
+      COUNT(1) AS total,
+      SUM(CASE WHEN r.status &gt;= 1 THEN 1 ELSE 0 END) AS submitted,
+      SUM(CASE WHEN r.status = 2 THEN 1 ELSE 0 END) AS graded,
+      AVG(r.score) AS avgScore,
+      MAX(r.score) AS maxScore,
+      MIN(r.score) AS minScore,
+      SUM(CASE WHEN r.score IS NOT NULL AND r.score &gt;= p.pass_score THEN 1 ELSE 0 END) AS passCount
+    FROM biz_exam_record r
+    LEFT JOIN biz_exam e ON e.id = r.exam_id
+    LEFT JOIN biz_paper p ON p.id = e.paper_id
+    WHERE r.exam_id = #{examId}
+  </select>
 
 </mapper>

@@ -23,12 +23,13 @@ public class ScoreController {
   @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
   public ResponseEntity<ApiResponse<HashMap<String, Object>>> list(
     @RequestParam(value = "examId", required = false) Long examId,
+    @RequestParam(value = "classId", required = false) Long classId,
     @RequestParam(value = "keyword", required = false) String keyword,
     @RequestParam(value = "page", defaultValue = "1") int page,
     @RequestParam(value = "size", defaultValue = "10") int size
   ) {
-    long total = service.count(examId, keyword);
-    List<Map<String, Object>> list = service.page(examId, keyword, page, size);
+    long total = service.count(examId, classId, keyword);
+    List<Map<String, Object>> list = service.page(examId, classId, keyword, page, size);
     HashMap<String, Object> data = new HashMap<>();
     data.put("list", list);
     data.put("total", total);
@@ -50,5 +51,11 @@ public class ScoreController {
     service.grade(examId, studentId, totalScore, questions);
     return ResponseEntity.ok(ApiResponse.success("提交成功", null));
   }
-}
 
+  @GetMapping("/scores/stats")
+  @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+  public ResponseEntity<ApiResponse<Map<String, Object>>> stats(@RequestParam("examId") Long examId) {
+    Map<String, Object> data = service.stats(examId);
+    return ResponseEntity.ok(ApiResponse.success("获取成功", data));
+  }
+}

@@ -35,6 +35,11 @@ public class AuthController {
     return ResponseEntity.ok(ApiResponse.success("注册成功", null));
   }
 
+  @PostMapping("/auth/register")
+  public ResponseEntity<ApiResponse<Void>> registerAlias(@Valid @RequestBody RegisterRequest request) {
+    return register(request);
+  }
+
   @PostMapping("/login")
   public ResponseEntity<ApiResponse<LoginData>> login(@Valid @RequestBody LoginRequest request) {
     User user = userService.authenticate(request.getUsername(), request.getPassword());
@@ -42,9 +47,15 @@ public class AuthController {
       return ResponseEntity.status(401).body(ApiResponse.error(401, "用户名或密码错误"));
     }
     String token = tokenService.generateToken(user);
-    UserInfo info = new UserInfo(user.getId(), user.getUsername(), user.getRealName(), user.getUserType(), user.getAvatar());
+    String resolvedType = userService.resolveUserType(user);
+    UserInfo info = new UserInfo(user.getId(), user.getUsername(), user.getRealName(), resolvedType, user.getAvatar());
     LoginData data = new LoginData(token, info);
     return ResponseEntity.ok(ApiResponse.success("登录成功", data));
+  }
+
+  @PostMapping("/auth/login")
+  public ResponseEntity<ApiResponse<LoginData>> loginAlias(@Valid @RequestBody LoginRequest request) {
+    return login(request);
   }
 
   @PostMapping("/reset-password")
@@ -54,6 +65,11 @@ public class AuthController {
       return ResponseEntity.status(404).body(ApiResponse.error(404, "用户不存在"));
     }
     return ResponseEntity.ok(ApiResponse.success("密码重置成功", null));
+  }
+
+  @PostMapping("/auth/reset-password")
+  public ResponseEntity<ApiResponse<Void>> resetPasswordAlias(@Valid @RequestBody ResetPasswordRequest request) {
+    return resetPassword(request);
   }
 
   @GetMapping("/me")

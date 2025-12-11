@@ -33,7 +33,7 @@ public class QuestionBankController {
   }
 
   @GetMapping("/questions")
-  @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+  @PreAuthorize("hasAnyRole('TEACHER','ADMIN','STUDENT')")
   public ResponseEntity<ApiResponse<HashMap<String, Object>>> list(
     @RequestParam(value = "page", defaultValue = "1") int page,
     @RequestParam(value = "size", defaultValue = "10") int size,

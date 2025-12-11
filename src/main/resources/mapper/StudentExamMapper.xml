@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.chaoxingsystem.student.exam.StudentExamMapper">
+
+  <insert id="insertRecord">
+    INSERT INTO biz_exam_record (exam_id, student_id, status, start_time, submit_time)
+    VALUES (#{examId}, #{studentId}, 0, CURRENT_TIMESTAMP, NULL)
+  </insert>
+
+  <update id="markSubmitted">
+    UPDATE biz_exam_record SET status = 1, submit_time = CURRENT_TIMESTAMP WHERE id = #{recordId}
+  </update>
+
+  <delete id="deleteAnswersByRecordId">
+    DELETE FROM biz_exam_answer WHERE record_id = #{recordId}
+  </delete>
+
+  <insert id="insertAnswer">
+    INSERT INTO biz_exam_answer (record_id, question_id, student_answer)
+    VALUES (#{recordId}, #{questionId}, CAST(#{studentAnswer} AS JSON))
+  </insert>
+
+</mapper>

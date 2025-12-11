@@ -14,11 +14,11 @@ public class ScoreService {
 
   public ScoreService(ScoreMapper mapper) { this.mapper = mapper; }
 
-  public long count(Long examId, String keyword) { return mapper.count(examId, keyword); }
+  public long count(Long examId, Long classId, String keyword) { return mapper.count(examId, classId, keyword); }
 
-  public List<Map<String, Object>> page(Long examId, String keyword, int page, int size) {
+  public List<Map<String, Object>> page(Long examId, Long classId, String keyword, int page, int size) {
     int offset = (Math.max(page, 1) - 1) * Math.max(size, 1);
-    return mapper.selectPage(examId, keyword, offset, size);
+    return mapper.selectPage(examId, classId, keyword, offset, size);
   }
 
   public Map<String, Object> detail(Long examId, Long studentId) {
@@ -43,5 +43,18 @@ public class ScoreService {
       mapper.updateAnswerScore(r.getId(), qid, score, comment);
     }
   }
-}
 
+  public Map<String, Object> stats(Long examId) {
+    Map<String, Object> m = mapper.selectStats(examId);
+    if (m == null) return Map.of();
+    Number total = (Number) m.get("total");
+    Number passCount = (Number) m.get("passCount");
+    double rate = 0.0;
+    if (total != null && total.intValue() > 0 && passCount != null) {
+      rate = ((double) passCount.intValue()) / ((double) total.intValue());
+    }
+    Map<String, Object> data = new HashMap<>(m);
+    data.put("passRate", rate);
+    return data;
+  }
+}

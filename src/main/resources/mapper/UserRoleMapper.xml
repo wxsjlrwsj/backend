@@ -6,6 +6,10 @@
     SELECT role_id FROM sys_user_role WHERE user_id = #{userId}
   </select>
 
+  <select id="selectRoleKeysByUserId" resultType="string">
+    SELECT r.role_key FROM sys_user_role ur JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = #{userId}
+  </select>
+
   <select id="selectUserIdsByRoleId" resultType="long">
     SELECT user_id FROM sys_user_role WHERE role_id = #{roleId}
   </select>
@@ -16,5 +20,122 @@
       INSERT INTO sys_user_role (user_id, role_id) VALUES (#{userId}, #{rid})
     </foreach>
   </insert>
+
+  <!-- 已分配该角色的用户详情列表（分页与筛选） -->
+  <select id="selectAllocatedUsersByRole" resultType="map">
+    SELECT u.id AS id,
+           u.username AS username,
+           u.real_name AS realName,
+           u.phone AS phonenumber,
+           COALESCE(od.name, oc.name, '') AS orgName,
+           '1' AS status
+    FROM sys_user_role ur
+    JOIN users u ON u.id = ur.user_id
+    LEFT JOIN biz_teacher t ON t.user_id = u.id
+    LEFT JOIN sys_organization od ON od.id = t.dept_id
+    LEFT JOIN biz_student s ON s.user_id = u.id
+    LEFT JOIN sys_organization oc ON oc.id = s.class_id
+    WHERE ur.role_id = #{roleId}
+    <if test="username != null and username != ''">
+      AND u.username LIKE CONCAT('%', #{username}, '%')
+    </if>
+    <if test="realName != null and realName != ''">
+      AND u.real_name LIKE CONCAT('%', #{realName}, '%')
+    </if>
+    ORDER BY u.id ASC
+    LIMIT #{offset}, #{limit}
+  </select>
+
+  <select id="countAllocatedUsersByRole" resultType="long">
+    SELECT COUNT(1)
+    FROM sys_user_role ur
+    JOIN users u ON u.id = ur.user_id
+    WHERE ur.role_id = #{roleId}
+    <if test="username != null and username != ''">
+      AND u.username LIKE CONCAT('%', #{username}, '%')
+    </if>
+    <if test="realName != null and realName != ''">
+      AND u.real_name LIKE CONCAT('%', #{realName}, '%')
+    </if>
+  </select>
+
+  <!-- 未分配该角色的用户详情列表（分页与筛选） -->
+  <select id="selectUnallocatedUsersByRole" resultType="map">
+    SELECT u.id AS id,
+           u.username AS username,
+           u.real_name AS realName,
+           u.phone AS phonenumber,
+           COALESCE(od.name, oc.name, '') AS orgName
+    FROM users u
+    LEFT JOIN biz_teacher t ON t.user_id = u.id
+    LEFT JOIN sys_organization od ON od.id = t.dept_id
+    LEFT JOIN biz_student s ON s.user_id = u.id
+    LEFT JOIN sys_organization oc ON oc.id = s.class_id
+    WHERE u.id NOT IN (SELECT user_id FROM sys_user_role WHERE role_id = #{roleId})
+    <if test="username != null and username != ''">
+      AND u.username LIKE CONCAT('%', #{username}, '%')
+    </if>
+    <if test="realName != null and realName != ''">
+      AND u.real_name LIKE CONCAT('%', #{realName}, '%')
+    </if>
+    <if test="orgId != null">
+      AND (od.id = #{orgId} OR oc.id = #{orgId})
+    </if>
+    ORDER BY u.id ASC
+    LIMIT #{offset}, #{limit}
+  </select>
+
+  <select id="countUnallocatedUsersByRole" resultType="long">
+    SELECT COUNT(1)
+    FROM users u
+    LEFT JOIN biz_teacher t ON t.user_id = u.id
+    LEFT JOIN sys_organization od ON od.id = t.dept_id
+    LEFT JOIN biz_student s ON s.user_id = u.id
+    LEFT JOIN sys_organization oc ON oc.id = s.class_id
+    WHERE u.id NOT IN (SELECT user_id FROM sys_user_role WHERE role_id = #{roleId})
+    <if test="username != null and username != ''">
+      AND u.username LIKE CONCAT('%', #{username}, '%')
+    </if>
+    <if test="realName != null and realName != ''">
+      AND u.real_name LIKE CONCAT('%', #{realName}, '%')
+    </if>
+    <if test="orgId != null">
+      AND (od.id = #{orgId} OR oc.id = #{orgId})
+    </if>
+  </select>
+
+  <!-- 按 user_type 查询用户（用于无显式授权时的回退显示） -->
+  <select id="selectUsersByUserType" resultType="map">
+    SELECT u.id AS id,
+           u.username AS username,
+           u.real_name AS realName,
+           u.phone AS phonenumber,
+           COALESCE(od.name, oc.name, '') AS orgName,
+           '1' AS status
+    FROM users u
+    LEFT JOIN biz_teacher t ON t.user_id = u.id
+    LEFT JOIN sys_organization od ON od.id = t.dept_id
+    LEFT JOIN biz_student s ON s.user_id = u.id
+    LEFT JOIN sys_organization oc ON oc.id = s.class_id
+    WHERE u.user_type = #{userType}
+    <if test="username != null and username != ''">
+      AND u.username LIKE CONCAT('%', #{username}, '%')
+    </if>
+    <if test="realName != null and realName != ''">
+      AND u.real_name LIKE CONCAT('%', #{realName}, '%')
+    </if>
+    ORDER BY u.id ASC
+    LIMIT #{offset}, #{limit}
+  </select>
+
+  <select id="countUsersByUserType" resultType="long">
+    SELECT COUNT(1) FROM users WHERE user_type = #{userType}
+    <if test="username != null and username != ''">
+      AND username LIKE CONCAT('%', #{username}, '%')
+    </if>
+    <if test="realName != null and realName != ''">
+      AND real_name LIKE CONCAT('%', #{realName}, '%')
+    </if>
+  </select>
 
 </mapper>

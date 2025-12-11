@@ -14,5 +14,5 @@ public interface PaperMapper {
 
   int deletePaperQuestions(@Param("paperId") Long paperId);
   int insertPaperQuestions(@Param("paperId") Long paperId, @Param("items") List<PaperQuestion> items);
+  List<java.util.Map<String, Object>> selectPaperQuestionViews(@Param("paperId") Long paperId);
 }
-

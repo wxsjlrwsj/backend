@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/chaoxing?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/chaoxing?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8}
     driverClassName: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:}
@@ -8,6 +8,7 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql
+      data-locations: classpath:seed.sql
 
 mybatis:
   mapper-locations: classpath*:mapper/*.xml

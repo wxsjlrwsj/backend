@@ -31,6 +31,10 @@ public class SystemModuleService {
     return mapper.selectPage(keyword, category, enabled, offset, s);
   }
 
+  public List<SystemModule> visibleByRole(String role) {
+    return mapper.selectVisibleByRole(role);
+  }
+
   @Transactional
   public Long create(SystemModule m) {
     if (mapper.countByCode(m.getCode()) > 0) {

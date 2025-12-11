@@ -4,4 +4,15 @@
   <select id="countByClassId" resultType="long">
     SELECT COUNT(1) FROM biz_student WHERE class_id = #{classId}
   </select>
+  <select id="countByUserId" resultType="long">
+    SELECT COUNT(1) FROM biz_student WHERE user_id = #{userId}
+  </select>
+  <update id="updateClassIdByUserId">
+    UPDATE biz_student SET class_id = #{classId}
+    WHERE user_id = #{userId}
+  </update>
+  <insert id="insertStudentProfile">
+    INSERT INTO biz_student (user_id, student_no, real_name, gender, class_id, major_code, enrollment_year, politics_status)
+    VALUES (#{userId}, #{studentNo}, #{realName}, #{gender}, #{classId}, #{majorCode}, #{enrollmentYear}, #{politicsStatus})
+  </insert>
 </mapper>

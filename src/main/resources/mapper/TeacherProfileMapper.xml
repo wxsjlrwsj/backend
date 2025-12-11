@@ -4,4 +4,15 @@
   <select id="countByDeptId" resultType="long">
     SELECT COUNT(1) FROM biz_teacher WHERE dept_id = #{deptId}
   </select>
+  <select id="countByUserId" resultType="long">
+    SELECT COUNT(1) FROM biz_teacher WHERE user_id = #{userId}
+  </select>
+  <update id="updateDeptIdByUserId">
+    UPDATE biz_teacher SET dept_id = #{deptId}
+    WHERE user_id = #{userId}
+  </update>
+  <insert id="insertTeacherProfile">
+    INSERT INTO biz_teacher (user_id, teacher_no, real_name, dept_id, title, entry_date)
+    VALUES (#{userId}, #{teacherNo}, #{realName}, #{deptId}, #{title}, #{entryDate})
+  </insert>
 </mapper>

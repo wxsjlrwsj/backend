@@ -31,6 +31,7 @@ public class OrgService {
       node.put("id", o.getId());
       node.put("name", o.getName());
       node.put("code", o.getCode());
+      node.put("type", o.getType());
       node.put("parentId", o.getParentId());
       node.put("children", buildChildren(byParent, o.getId()));
       result.add(node);
@@ -136,5 +137,34 @@ public class OrgService {
     String base = (parentPath == null || parentPath.isEmpty()) ? "/" : parentPath;
     if (!base.endsWith("/")) base = base + "/";
     return base + (id == null ? "" : id) + "/";
+  }
+
+  /** 获取机构成员列表：
+   *  - class: 返回班级学生
+   *  - department/dept: 返回部门教师
+   *  - school/college/其他: 聚合子树中的班级学生与部门教师
+   */
+  public List<Map<String, Object>> getMembers(Long orgId) {
+    Organization org = mapper.selectById(orgId);
+    if (org == null) return List.of();
+    String type = org.getType() == null ? "" : org.getType().toLowerCase();
+    if ("class".equals(type)) {
+      return mapper.listStudentMembersByClassIds(List.of(orgId));
+    }
+    if ("department".equals(type) || "dept".equals(type)) {
+      return mapper.listTeacherMembersByDeptIds(List.of(orgId));
+    }
+    List<Organization> subtree = mapper.selectSubtree(org.getPath());
+    List<Long> classIds = new ArrayList<>();
+    List<Long> deptIds = new ArrayList<>();
+    for (Organization o : subtree) {
+      String t = o.getType() == null ? "" : o.getType().toLowerCase();
+      if ("class".equals(t)) classIds.add(o.getId());
+      if ("department".equals(t) || "dept".equals(t)) deptIds.add(o.getId());
+    }
+    List<Map<String, Object>> result = new ArrayList<>();
+    if (!classIds.isEmpty()) result.addAll(mapper.listStudentMembersByClassIds(classIds));
+    if (!deptIds.isEmpty()) result.addAll(mapper.listTeacherMembersByDeptIds(deptIds));
+    return result;
   }
 }

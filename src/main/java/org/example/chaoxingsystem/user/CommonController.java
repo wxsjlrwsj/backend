@@ -1,7 +1,6 @@
-package org.example.chaoxingsystem.student.common;
+package org.example.chaoxingsystem.user;
 
 import jakarta.validation.Valid;
-import org.example.chaoxingsystem.user.UserService;
 import org.example.chaoxingsystem.user.dto.ApiResponse;
 import org.example.chaoxingsystem.user.dto.ProfileResponse;
 import org.example.chaoxingsystem.user.dto.UpdatePasswordRequest;
@@ -11,10 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * 学生端公共接口：个人资料查询/更新、密码修改
- */
-@RestController("studentCommonController")
+@RestController
 @RequestMapping("/api/common")
 public class CommonController {
   private final UserService userService;
@@ -24,7 +20,7 @@ public class CommonController {
   }
 
   @GetMapping("/profile")
-  @PreAuthorize("hasRole('STUDENT')")
+  @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
   public ResponseEntity<ApiResponse<ProfileResponse>> profile(Authentication authentication) {
     String username = authentication.getName();
     var info = userService.getUserInfoByUsername(username);
@@ -37,7 +33,7 @@ public class CommonController {
   }
 
   @PutMapping("/profile")
-  @PreAuthorize("hasRole('STUDENT')")
+  @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
   public ResponseEntity<ApiResponse<Void>> updateProfile(Authentication authentication, @Valid @RequestBody UpdateProfileRequest request) {
     String username = authentication.getName();
     boolean ok = userService.updateProfile(username, request.getEmail(), request.getPhone());
@@ -48,7 +44,7 @@ public class CommonController {
   }
 
   @PutMapping("/password")
-  @PreAuthorize("hasRole('STUDENT')")
+  @PreAuthorize("hasAnyRole('STUDENT','TEACHER','ADMIN')")
   public ResponseEntity<ApiResponse<Void>> changePassword(Authentication authentication, @Valid @RequestBody UpdatePasswordRequest request) {
     String username = authentication.getName();
     boolean ok = userService.changePassword(username, request.getOldPassword(), request.getNewPassword());

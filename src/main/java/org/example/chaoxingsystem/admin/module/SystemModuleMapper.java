@@ -12,4 +12,5 @@ public interface SystemModuleMapper {
   SystemModule selectByCode(@Param("code") String code);
   Long count(@Param("keyword") String keyword, @Param("category") String category, @Param("enabled") Boolean enabled);
   List<SystemModule> selectPage(@Param("keyword") String keyword, @Param("category") String category, @Param("enabled") Boolean enabled, @Param("offset") int offset, @Param("limit") int limit);
+  List<SystemModule> selectVisibleByRole(@Param("role") String role);
 }

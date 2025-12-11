@@ -48,6 +48,20 @@ public class ModuleController {
     return ResponseEntity.ok(ApiResponse.success("查询成功", data));
   }
 
+  @GetMapping("/modules/visible")
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<ApiResponse<List<ModuleItemResponse>>> visibleByRole(
+      @RequestParam("role") String role
+  ) {
+    var items = service.visibleByRole(role).stream().map(m ->
+      new ModuleItemResponse(
+        m.getId(), m.getName(), m.getCode(), m.getCategory(), m.getVersion(), m.getEnabled(), m.getShowInMenu(), m.getRoutePath(),
+        SystemModuleService.split(m.getAllowedRoles()), SystemModuleService.split(m.getDependencies()), m.getDescription(), m.getUpdatedAt()
+      )
+    ).collect(Collectors.toList());
+    return ResponseEntity.ok(ApiResponse.success("获取成功", items));
+  }
+
   @PostMapping("/modules")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<Void>> create(@Valid @RequestBody ModuleRequest req) {

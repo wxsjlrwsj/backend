@@ -66,4 +66,19 @@
     </foreach>
   </insert>
 
+  <select id="selectPaperQuestionViews" resultType="java.util.Map">
+    SELECT
+      pq.question_id AS id,
+      q.type_id AS type_id,
+      t.type_code AS type_code,
+      q.content AS content,
+      q.options AS options,
+      pq.score AS score
+    FROM biz_paper_question pq
+    JOIN biz_question q ON q.id = pq.question_id
+    LEFT JOIN biz_question_type t ON t.type_id = q.type_id
+    WHERE pq.paper_id = #{paperId}
+    ORDER BY pq.sort_order ASC
+  </select>
+
 </mapper>

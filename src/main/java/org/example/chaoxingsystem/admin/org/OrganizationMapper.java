@@ -2,6 +2,7 @@ package org.example.chaoxingsystem.admin.org;
 
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
+import java.util.Map;
 
 public interface OrganizationMapper {
   int insert(Organization org);
@@ -13,4 +14,7 @@ public interface OrganizationMapper {
   Long countByCode(@Param("code") String code);
   List<Organization> selectAll();
   List<Organization> selectSubtree(@Param("pathPrefix") String pathPrefix);
+
+  List<Map<String, Object>> listStudentMembersByClassIds(@Param("classIds") List<Long> classIds);
+  List<Map<String, Object>> listTeacherMembersByDeptIds(@Param("deptIds") List<Long> deptIds);
 }

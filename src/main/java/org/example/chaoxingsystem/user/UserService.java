@@ -20,10 +20,12 @@ import java.time.ZoneId;
 @Service
 public class UserService {
   private final UserMapper userMapper;
+  private final org.example.chaoxingsystem.admin.perm.UserRoleMapper userRoleMapper;
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-  public UserService(UserMapper userMapper) {
+  public UserService(UserMapper userMapper, org.example.chaoxingsystem.admin.perm.UserRoleMapper userRoleMapper) {
     this.userMapper = userMapper;
+    this.userRoleMapper = userRoleMapper;
   }
 
   @Transactional
@@ -80,7 +82,8 @@ public class UserService {
   public UserInfo getUserInfoByUsername(String username) {
     User u = userMapper.selectByUsername(username);
     if (u == null) { return null; }
-    return new UserInfo(u.getId(), u.getUsername(), u.getRealName(), u.getUserType(), u.getAvatar());
+    String resolvedType = resolveUserType(u);
+    return new UserInfo(u.getId(), u.getUsername(), u.getRealName(), resolvedType, u.getAvatar());
   }
 
   public User getByUsername(String username) {
@@ -115,5 +118,20 @@ public class UserService {
     String hash = passwordEncoder.encode(newPassword);
     int updated = userMapper.updatePasswordById(u.getId(), hash);
     return updated > 0;
+  }
+  public String resolveUserType(User u) {
+    try {
+      var keys = userRoleMapper.selectRoleKeysByUserId(u.getId());
+      if (keys != null && !keys.isEmpty()) {
+        if (keys.contains("ADMIN")) return "admin";
+        if (keys.contains("TEACHER")) return "teacher";
+        if (keys.contains("STUDENT")) return "student";
+      }
+    } catch (Exception ignored) {}
+    String t = u.getUserType();
+    if (t == null) return "student";
+    t = t.trim().toLowerCase();
+    if (t.equals("admin") || t.equals("teacher") || t.equals("student")) return t;
+    return "student";
   }
 }
